@@ -31,7 +31,7 @@ from datetime import timedelta
 
 
 def build_dataset(data_directory, img_width):
-    X, y, tags = dataset.dataset(data_directory, int(img_width))
+    X, y, tags = dataset(data_directory, int(img_width))
     nb_classes = len(tags)
 
     sample_count = len(y)
@@ -123,9 +123,9 @@ def main():
 
     print("loading dataset")
     X_train, Y_train, nb_classes = build_dataset(
-        "{}/train".format(data_directory), args.dimension)
+        "{}/training".format(data_directory), args.dimension)
     X_test, Y_test, nb_classes = build_dataset(
-        "{}/test".format(data_directory), args.dimension)
+        "{}/testing".format(data_directory), args.dimension)
     print("number of classes : {}".format(nb_classes))
 
     model = build_model(SHAPE, nb_classes, bn_axis)

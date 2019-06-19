@@ -92,4 +92,4 @@ except Exception as identifier:
 
 # find . -name "*.png" -exec convert "{}" -alpha off "{}" \;
 # find . -name "*.png" -exec convert "{}" -adaptive-resize 20x20! "{}" \;
-# os.system('spd-say --voice-type female3 "your program has finished"')
+

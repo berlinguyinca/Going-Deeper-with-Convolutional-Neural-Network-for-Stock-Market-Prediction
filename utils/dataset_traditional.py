@@ -5,8 +5,11 @@ from __future__ import print_function
 import sys
 import os
 from collections import defaultdict
+
+import imageio
 import numpy as np
 import scipy.misc
+import  cv2
 
 
 def dataset(base_dir, n):
@@ -31,7 +34,11 @@ def dataset(base_dir, n):
     for class_index, class_name in enumerate(tags):
         filenames = d[class_name]
         for filename in filenames:
-            img = scipy.misc.imread(filename)
+            img = imageio.imread(filename)
+
+            # drop alpha
+            img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+
             new_shape = (img.shape[0] * img.shape[1] * 3)
             img_as_array = img[:, :, :3].reshape(new_shape)
             height, width, chan = img.shape
