@@ -1,5 +1,6 @@
 import tensorflow as tf
 import os
+
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 config = tf.ConfigProto()
@@ -50,44 +51,45 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
 
     input_layer = Input(shape=SHAPE)
 
-    # Step 1
-    x = Conv2D(32, 3, 3, init='glorot_uniform',
-               border_mode='same', activation='relu')(input_layer)
-    # Step 2 - Pooling
-    x = MaxPooling2D(pool_size=(2, 2))(x)
+    model = Sequential()
 
     # Step 1
-    x = Conv2D(48, 3, 3, init='glorot_uniform', border_mode='same',
-               activation='relu')(x)
+    model.add(Conv2D(filters=32, kernel_size=(3, 3),
+                     padding='same', activation='relu', input_shape=SHAPE))
+
     # Step 2 - Pooling
-    x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Dropout(0.25)(x)
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # Step 1
-    x = Conv2D(64, 3, 3, init='glorot_uniform', border_mode='same',
-               activation='relu')(x)
+    model.add(Conv2D(filters=48, kernel_size=(3, 3), padding='same',
+                     activation='relu'))
     # Step 2 - Pooling
-    x = MaxPooling2D(pool_size=(2, 2))(x)
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
 
     # Step 1
-    x = Conv2D(96, 3, 3, init='glorot_uniform', border_mode='same',
-               activation='relu')(x)
+    model.add(Conv2D(filters=64, kernel_size=(3, 3), padding='same',
+                     activation='relu'))
     # Step 2 - Pooling
-    x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Dropout(0.25)(x)
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    # Step 1
+    model.add(Conv2D(filters=96, kernel_size=(3, 3), padding='same',
+                     activation='relu'))
+    # Step 2 - Pooling
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
 
     # Step 3 - Flattening
-    x = Flatten()(x)
+    model.add(Flatten())
 
     # Step 4 - Full connection
 
-    x = Dense(output_dim=256, activation='relu')(x)
+    model.add(Dense(256, activation='relu'))
     # Dropout
-    x = Dropout(0.5)(x)
+    model.add(Dropout(0.5))
 
-    x = Dense(output_dim=2, activation='softmax')(x)
-
-    model = Model(input_layer, x)
+    model.add(Dense(2, activation='softmax'))
 
     return model
 
@@ -134,6 +136,11 @@ def main():
                   loss='categorical_crossentropy', metrics=['accuracy'])
 
     # Fit the model
+
+    size = int(args.dimension)
+    X_train = X_train.reshape(-1, size, size, 3)  # Reshape for CNN -  should work!!
+    X_test = X_test.reshape(-1, size, size, 3)
+
     model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
 
     # Save Model or creates a HDF5 file
@@ -157,17 +164,17 @@ def main():
         fp = 1
     if fn == 0:
         fn = 1
-    TPR = float(tp)/(float(tp)+float(fn))
-    FPR = float(fp)/(float(fp)+float(tn))
-    accuracy = round((float(tp) + float(tn))/(float(tp) +
-                                              float(fp) + float(fn) + float(tn)), 3)
-    specitivity = round(float(tn)/(float(tn) + float(fp)), 3)
-    sensitivity = round(float(tp)/(float(tp) + float(fn)), 3)
-    mcc = round((float(tp)*float(tn) - float(fp)*float(fn))/math.sqrt(
-        (float(tp)+float(fp))
-        * (float(tp)+float(fn))
-        * (float(tn)+float(fp))
-        * (float(tn)+float(fn))
+    TPR = float(tp) / (float(tp) + float(fn))
+    FPR = float(fp) / (float(fp) + float(tn))
+    accuracy = round((float(tp) + float(tn)) / (float(tp) +
+                                                float(fp) + float(fn) + float(tn)), 3)
+    specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
+    sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
+    mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
+        (float(tp) + float(fp))
+        * (float(tp) + float(fn))
+        * (float(tn) + float(fp))
+        * (float(tn) + float(fn))
     ), 3)
 
     f_output = open(args.output, 'a')
